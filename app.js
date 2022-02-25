@@ -1,13 +1,125 @@
+var inquirer = require('inquirer');
 const fs = require('fs');
+//const generatePage = require('./src/page-template.js');
 
-const generatePage = require('./src/page-template.js');
+const promptUser = () => {
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'What is your name? (Required)',
+      validate: nameInput => {
+        if (nameInput) {
+          return true;
+        } else {
+          console.log('Please enter your name!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'github',
+      message: 'What is your Github Username? (Required)',
+      validate: accountInput => {
+        if (accountInput) {
+          return true;
+        } else {
+          console.log('Please enter your github account!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'about',
+      message: 'Provide Some information about yourself:'
+    }
+  ])
+};
 
-const profileDataArgs = process.argv.slice(2, process.argv.length);
+const promptProject = portfolioData => {
+  console.log(`
+  =================
+  Add a New Project
+  =================
+  `);
 
-const [name, github] = profileDataArgs;
+    // If there's no 'projects' array property, create one
+    if (!portfolioData.projects) {
+      portfolioData.projects = [];
+    }
+  return inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'What is the name of your project? (Required)',
+      validate: projectNameInput => {
+        if (projectNameInput) {
+          return true;
+        } else {
+          console.log('Please enter the name of your Project!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'input',
+      name: 'description',
+      message: 'Provide a description of the project (Required)',
+      validate: projectDescInput => {
+        if (projectDescInput) {
+          return true;
+        } else {
+          console.log('Please enter your a description for your Project!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'checkbox',
+      name: 'languages',
+      message: 'What did you build this project with? (Check all that apply)',
+      choices: ['Javascript', 'HTML', 'CSS', 'ES6', 'JQuery', 'Bootstrap', 'Node']
+    },
+    {
+      type: 'input',
+      name: 'link',
+      message: 'Enter the GitHub link to your project. (Required)',
+      validate: projectLinkInput => {
+        if (projectLinkInput) {
+          return true;
+        } else {
+          console.log('Please enter the github link for your Project!');
+          return false;
+        }
+      }
+    },
+    {
+      type: 'confirm',
+      name: 'feature',
+      message: 'Would you like to feature this project?',
+      default: false
+    },
+    {
+      type: 'confirm',
+      name: 'confirmAddProject',
+      message: 'Would you like to enter another project?',
+      default: false
+    }
+  ])
+  .then(projectData => {
+    portfolioData.projects.push(projectData);
+    if (projectData.confirmAddProject) {
+      return promptProject(portfolioData);
+    } else {
+      return portfolioData;
+    }    
+  });
+};
 
-fs.writeFile('index.html', generatePage(name, github), err => {
-  if (err) throw err;
-
-  console.log('Portfolio complete! Check out index.html to see the output!');
-});
+promptUser()
+  .then(promptProject)
+  .then(portfolioData => {
+    console.log(portfolioData);
+  });
